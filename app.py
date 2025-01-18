@@ -17,7 +17,7 @@ MODEL_FILE = "gesture_model.pkl"
 # Hand gesture classes
 GESTURES = ["Hi", "Thank You", "Good Morning", "Yes", "No", "Unknown"]
 
-# Collect data
+# Helper function: Collect data
 def collect_data(label, num_samples=200):
     cap = cv2.VideoCapture(0)
     hands = mp_hands.Hands(min_detection_confidence=0.5, min_tracking_confidence=0.5)
@@ -34,8 +34,10 @@ def collect_data(label, num_samples=200):
 
         if result.multi_hand_landmarks:
             for hand_landmarks in result.multi_hand_landmarks:
-                landmarks = [lm for lm in hand_landmarks.landmark]
-                data.append([lm.x, lm.y, lm.z] for lm in landmarks)
+                landmarks = [lm.x for lm in hand_landmarks.landmark] + \
+                            [lm.y for lm in hand_landmarks.landmark] + \
+                            [lm.z for lm in hand_landmarks.landmark]
+                data.append(landmarks)
                 mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
         st.image(frame, channels="BGR", caption="Show the gesture in front of the camera")
@@ -47,7 +49,7 @@ def collect_data(label, num_samples=200):
     hands.close()
     return data
 
-# Train model
+# Helper function: Train model
 def train_model():
     all_data = []
     all_labels = []
@@ -70,7 +72,7 @@ def train_model():
     with open(MODEL_FILE, "wb") as f:
         pickle.dump(model, f)
 
-# Predict gesture
+# Helper function: Predict gesture
 def predict_gesture(model, landmarks):
     if landmarks is None or model is None:
         return "Unknown"
